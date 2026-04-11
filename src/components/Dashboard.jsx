@@ -395,7 +395,6 @@ export default function Dashboard({ jobId, onNewSearch }) {
             paeMatrix={structural_data?.confidence?.pae_matrix}
             meanPae={structural_data?.confidence?.mean_pae}
           />
-           /* Dashboard.jsx corregido */
           <AIReport
             data={data}
             savedAnnotations={savedAnnotations}
