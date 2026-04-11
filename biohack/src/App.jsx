@@ -1,194 +1,170 @@
-import { useState } from 'react';
-import { JobMonitor } from './components/JobMonitor';
+import { useState } from 'react'
+import FastaForm from './components/FastaForm'
+import { JobMonitor } from './components/JobMonitor'
 
-const BASE_URL = 'https://api-mock-cesga.onrender.com';
-
-const FASTA_EJEMPLO = `>sp|P0CG47|UBQ_HUMAN Ubiquitin OS=Homo sapiens
-MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG`;
+const API = 'https://api-mock-cesga.onrender.com'
 
 export default function App() {
-  const [fasta, setFasta] = useState('');
-  const [jobId, setJobId] = useState(null);
-  const [enviando, setEnviando] = useState(false);
-  const [errorEnvio, setErrorEnvio] = useState(null);
-  const [resultados, setResultados] = useState(null);
+  const [jobId, setJobId] = useState(null)
+  const [outputs, setOutputs] = useState(null)
+  const [tab, setTab] = useState('submit')
+  const [jobs, setJobs] = useState([])
+  const [notification, setNotification] = useState(null)
 
-  const handleSubmit = async () => {
-    if (!fasta.trim() || !fasta.startsWith('>')) {
-      setErrorEnvio('La secuencia debe empezar por ">"');
-      return;
-    }
-    setErrorEnvio(null);
-    setEnviando(true);
-    setJobId(null);
-    setResultados(null);
+  const showNotification = (msg, type = 'info') => {
+    setNotification({ msg, type })
+    setTimeout(() => setNotification(null), 5000)
+  }
 
+  const handleValidatedData = async (data) => {
     try {
-      const res = await fetch(`${BASE_URL}/jobs/submit`, {
+      const r = await fetch(`${API}/jobs/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fasta_sequence: fasta,
-          fasta_filename: 'secuencia.fasta',
+          fasta_sequence: data.fasta_sequence,
+          fasta_filename: data.fasta_filename,
           gpus: 1,
-          memory_gb: 16,
+          cpus: 8,
+          memory_gb: 32,
+          max_runtime_seconds: 3600,
         }),
-      });
-      const data = await res.json();
-      setJobId(data.job_id);
-    } catch (err) {
-      setErrorEnvio('Error al conectar con la API. Inténtalo de nuevo.');
-    } finally {
-      setEnviando(false);
+      })
+      if (!r.ok) throw new Error('Error al enviar el job')
+      const result = await r.json()
+      setJobId(result.job_id)
+      setOutputs(null)
+      setJobs(prev => [{ id: result.job_id, status: 'PENDING', time: new Date().toLocaleTimeString() }, ...prev])
+      setTab('status')
+      showNotification('Job enviado al CESGA!')
+    } catch (e) {
+      showNotification(e.message, 'error')
     }
-  };
+  }
 
   const handleCompleted = async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/jobs/${id}/outputs`);
-      const data = await res.json();
-      setResultados({
-        plddt: data.structural_data?.confidence?.plddt_mean,
-        solubilidad: data.biological_data?.solubility_score,
-        estabilidad: data.biological_data?.instability_index,
-        proteina: data.protein_metadata?.protein_name,
-      });
-    } catch (err) {
-      console.error('Error obteniendo resultados', err);
+      const r = await fetch(`${API}/jobs/${id}/outputs`)
+      const data = await r.json()
+      setOutputs(data)
+      setJobs(prev => prev.map(j => j.id === id ? { ...j, status: 'COMPLETED' } : j))
+      showNotification('¡Predicción completada!', 'success')
+      console.log('📱 Enviando notificación al investigador...')
+    } catch (e) {
+      console.error('Error obteniendo resultados', e)
     }
-  };
+  }
+
+  const tabStyle = (t) => ({
+    padding: '8px 16px', fontSize: 13,
+    fontWeight: tab === t ? 500 : 400,
+    color: tab === t ? '#000' : '#666',
+    borderBottom: tab === t ? '2px solid #000' : '2px solid transparent',
+    background: 'none', border: 'none',
+    cursor: 'pointer',
+  })
 
   return (
-    <div style={{
-      maxWidth: '700px',
-      margin: '0 auto',
-      padding: '40px 20px',
-      fontFamily: 'sans-serif',
-    }}>
-      <h1 style={{ color: '#0f6e56', marginBottom: '8px' }}>
-        🧬 BioHack — Predicción de Proteínas
-      </h1>
-      <p style={{ color: '#6b7280', marginBottom: '32px' }}>
-        Pega tu secuencia FASTA y el clúster CESGA calculará la estructura 3D.
-      </p>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', padding: '1rem' }}>
 
-      {/* Input */}
-      <div>
-        <textarea
-          value={fasta}
-          onChange={(e) => setFasta(e.target.value)}
-          placeholder=">sp|P0CG47|UBQ_HUMAN Ubiquitin&#10;MQIFVKTLTGKTITLEVEPSD..."
-          rows={6}
-          style={{
-            width: '100%',
-            padding: '12px',
-            borderRadius: '8px',
-            border: '1px solid #d1d5db',
-            fontFamily: 'monospace',
-            fontSize: '13px',
-            resize: 'vertical',
-            boxSizing: 'border-box',
-          }}
-        />
-
-        <button
-          onClick={() => setFasta(FASTA_EJEMPLO)}
-          style={{
-            marginTop: '8px',
-            marginRight: '10px',
-            padding: '6px 14px',
-            borderRadius: '6px',
-            border: '1px solid #d1d5db',
-            background: 'white',
-            cursor: 'pointer',
-            fontSize: '13px',
-            color: '#6b7280',
-          }}
-        >
-          Usar ejemplo
-        </button>
-
-        <button
-          onClick={handleSubmit}
-          disabled={enviando}
-          style={{
-            marginTop: '8px',
-            padding: '8px 20px',
-            borderRadius: '6px',
-            border: 'none',
-            background: enviando ? '#9ca3af' : '#0f6e56',
-            color: 'white',
-            cursor: enviando ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
-          }}
-        >
-          {enviando ? 'Enviando...' : 'Enviar al clúster'}
-        </button>
-
-        {errorEnvio && (
-          <p style={{ color: '#ef4444', fontSize: '13px', marginTop: '8px' }}>
-            {errorEnvio}
-          </p>
-        )}
-      </div>
-
-      {/* Monitor de estado */}
-      {jobId && (
-        <JobMonitor jobId={jobId} onCompleted={handleCompleted} />
-      )}
-
-      {/* Resultados */}
-      {resultados && (
+      {notification && (
         <div style={{
-          marginTop: '32px',
-          padding: '20px',
-          borderRadius: '12px',
-          border: '1px solid #22c55e',
-          background: '#f0fdf4',
+          position: 'fixed', top: 16, right: 16, zIndex: 999, maxWidth: 320,
+          background: notification.type === 'success' ? '#E1F5EE' : notification.type === 'error' ? '#FCEBEB' : '#fff',
+          border: '1px solid #ccc', borderRadius: 10, padding: '10px 16px', fontSize: 13,
         }}>
-          <h2 style={{ color: '#15803d', marginTop: 0 }}>
-            ✅ Resultados
-            {resultados.proteina && ` — ${resultados.proteina}`}
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-            <MetricCard
-              label="pLDDT medio"
-              value={resultados.plddt?.toFixed(1)}
-              description="Confianza global (>70 = fiable)"
-              color="#3b82f6"
-            />
-            <MetricCard
-              label="Solubilidad"
-              value={`${resultados.solubilidad?.toFixed(1)}/100`}
-              description=">50 = soluble en agua"
-              color="#0f6e56"
-            />
-            <MetricCard
-              label="Inestabilidad"
-              value={resultados.estabilidad?.toFixed(1)}
-              description="<40 = proteína estable"
-              color="#f59e0b"
-            />
-          </div>
+          {notification.msg}
         </div>
       )}
-    </div>
-  );
-}
 
-function MetricCard({ label, value, description, color }) {
-  return (
-    <div style={{
-      padding: '16px',
-      borderRadius: '8px',
-      background: 'white',
-      border: `1px solid ${color}`,
-      textAlign: 'center',
-    }}>
-      <div style={{ fontSize: '22px', fontWeight: '700', color }}>{value}</div>
-      <div style={{ fontWeight: '600', fontSize: '13px', marginTop: '4px' }}>{label}</div>
-      <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>{description}</div>
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 22, fontWeight: 500 }}>LocalFold</span>
+        <span style={{ fontSize: 12, color: '#666', marginLeft: 10, background: '#f0f0f0', padding: '2px 8px', borderRadius: 20 }}>CESGA · AlphaFold2</span>
+        <div style={{ fontSize: 13, color: '#666', marginTop: 2 }}>Portal de predicción de estructuras proteicas · IMPACTHON 2026</div>
+      </div>
+
+      <div style={{ borderBottom: '1px solid #eee', display: 'flex', marginBottom: 20 }}>
+        {[['submit','Nueva predicción'],['status','Estado'],['results','Resultados'],['history','Historial']].map(([key, label]) => (
+          <button key={key} onClick={() => setTab(key)} style={tabStyle(key)}>{label}</button>
+        ))}
+      </div>
+
+      {tab === 'submit' && (
+        <FastaForm onValidSubmit={handleValidatedData} />
+      )}
+
+      {tab === 'status' && (
+        <div>
+          {!jobId
+            ? <div style={{ color: '#666' }}>No has enviado ningún job todavía.</div>
+            : <JobMonitor jobId={jobId} onCompleted={handleCompleted} />
+          }
+          {outputs && (
+            <button onClick={() => setTab('results')}
+              style={{ marginTop: 16, padding: '8px 20px' }}>
+              Ver resultados →
+            </button>
+          )}
+        </div>
+      )}
+
+      {tab === 'results' && (
+        <div>
+          {!outputs
+            ? <div style={{ color: '#666' }}>No hay resultados disponibles aún.</div>
+            : (
+              <div>
+                {outputs.protein_metadata && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 18, fontWeight: 500 }}>{outputs.protein_metadata.protein_name}</div>
+                    <div style={{ fontSize: 12, color: '#666' }}>
+                      UniProt: {outputs.protein_metadata.uniprot_id} · PDB: {outputs.protein_metadata.pdb_id} · {outputs.protein_metadata.organism}
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 16 }}>
+                  {[
+                    ['pLDDT medio', outputs.structural_data?.confidence?.plddt_mean?.toFixed(1) + '/100'],
+                    ['PAE medio', outputs.structural_data?.confidence?.mean_pae?.toFixed(2) + ' Å'],
+                    ['Solubilidad', outputs.biological_data?.solubility_score?.toFixed(0) + '/100'],
+                    ['Inestabilidad', outputs.biological_data?.instability_index?.toFixed(1)],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ background: '#f5f5f5', borderRadius: 8, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 11, color: '#666' }}>{label}</div>
+                      <div style={{ fontSize: 20, fontWeight: 500 }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => {
+                  const blob = new Blob([outputs.structural_data.pdb_file], { type: 'text/plain' })
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(blob)
+                  a.download = 'structure.pdb'
+                  a.click()
+                }} style={{ padding: '8px 20px', fontSize: 13 }}>Descargar PDB</button>
+              </div>
+            )
+          }
+        </div>
+      )}
+
+      {tab === 'history' && (
+        <div>
+          {jobs.length === 0
+            ? <div style={{ color: '#666' }}>No has enviado ningún job todavía.</div>
+            : jobs.map(j => (
+              <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', border: '1px solid #eee', borderRadius: 8, marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontFamily: 'monospace', fontSize: 12 }}>{j.id}</div>
+                  <div style={{ fontSize: 11, color: '#666' }}>{j.time}</div>
+                </div>
+                <span style={{ fontSize: 11, color: j.status === 'COMPLETED' ? 'green' : j.status === 'FAILED' ? 'red' : 'orange' }}>{j.status}</span>
+              </div>
+            ))
+          }
+        </div>
+      )}
+
     </div>
-  );
+  )
 }
