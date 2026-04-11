@@ -1,27 +1,20 @@
 import { useCallback, useState } from 'react'
 
-interface FileLoadedPayload {
-  content: string
-  filename: string
-}
-
-export function useFastaDrop(onFileLoaded: (payload: FileLoadedPayload) => void) {
+export function useFastaDrop(onFileLoaded) {
   const [isDragging, setIsDragging] = useState(false)
-  const [dropError, setDropError] = useState<string | null>(null)
+  const [dropError, setDropError] = useState(null)
 
   const processFile = useCallback(
-    (file: File) => {
+    (file) => {
       setDropError(null)
-
       if (!file.name.endsWith('.fasta')) {
         setDropError('Solo se aceptan archivos con extensión .fasta')
         return
       }
-
       const reader = new FileReader()
       reader.onload = (e) => {
         onFileLoaded({
-          content: e.target?.result as string,
+          content: e.target.result,
           filename: file.name,
         })
       }
@@ -30,7 +23,7 @@ export function useFastaDrop(onFileLoaded: (payload: FileLoadedPayload) => void)
     [onFileLoaded]
   )
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e) => {
     e.preventDefault()
     setIsDragging(true)
   }, [])
@@ -40,7 +33,7 @@ export function useFastaDrop(onFileLoaded: (payload: FileLoadedPayload) => void)
   }, [])
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e) => {
       e.preventDefault()
       setIsDragging(false)
       const file = e.dataTransfer.files[0]
@@ -50,7 +43,7 @@ export function useFastaDrop(onFileLoaded: (payload: FileLoadedPayload) => void)
   )
 
   const handleFileInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e) => {
       const file = e.target.files?.[0]
       if (file) processFile(file)
     },

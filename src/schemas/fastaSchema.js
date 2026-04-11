@@ -24,12 +24,8 @@ export const fastaSchema = z.object({
         .slice(1)
         .map((l) => l.trim())
         .filter(Boolean)
-
       if (sequenceLines.length === 0) return false
-
       const sequence = sequenceLines.join('')
       return VALID_AMINO_ACIDS.test(sequence)
-    }, 'La secuencia contiene caracteres no válidos. Solo se permiten: ACDEFGHIKLMNPQRSTVWY.'),
+    }, 'Solo se permiten aminoácidos canónicos: ACDEFGHIKLMNPQRSTVWY.'),
 })
-
-export type FastaFormData = z.infer<typeof fastaSchema>
