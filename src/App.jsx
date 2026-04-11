@@ -33,28 +33,24 @@ function App() {
     setActiveTab('informes');
   };
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: isMobile ? 'column' : 'row',
-      minHeight: '100vh',
-      width: '100%',
-      background: 'var(--bg-primary)',
-    }}>
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+    <div style={{ minHeight: '100vh', width: '100%', background: 'var(--bg-primary)' }}>
 
-      <main style={{
-        flex: 1,
-        minWidth: 0,
-        boxSizing: 'border-box',
-        padding: isMobile ? '1rem' : '2rem 3rem',
-        paddingTop: isMobile ? '72px' : '2rem',
-        overflowY: 'auto',
+      {/* Barra superior con el desplegable */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        background: 'var(--bg-secondary)',
+        borderBottom: '1px solid var(--surface-border)',
+        padding: '0.75rem 1.5rem',
+        display: 'flex', alignItems: 'center', gap: '1rem',
       }}>
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+
+      {/* Contenido principal */}
+      <main style={{ padding: '2rem 1.5rem', boxSizing: 'border-box', minWidth: 0 }}>
         {globalError && (
-          <div className="layout-container" style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--accent-red)', borderRadius: 'var(--border-radius-sm)', color: 'var(--text-primary)' }}>
+          <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(239,68,68,0.15)', border: '1px solid var(--accent-red)', borderRadius: '8px', color: 'var(--text-primary)' }}>
             <strong>Error:</strong> {globalError}
             <button onClick={() => setGlobalError(null)} style={{ float: 'right', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
           </div>
