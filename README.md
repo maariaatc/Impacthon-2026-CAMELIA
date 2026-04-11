@@ -11,8 +11,23 @@ El problema es el acceso. Utilizarlo exige dominar Linux, el gestor de colas **S
 **Antigravity** construye ese puente. Es una Single Page Application (SPA) desarrollada en **React + Vite** que act煤a como capa de abstracci贸n sobre el cl煤ster HPC: el investigador pega una secuencia FASTA y recibe en su navegador la estructura proteica en 3D, m茅tricas de confianza interpretadas y un an谩lisis asistido por IA. Toda la comunicaci贸n con el supercomputador 鈥攃onstrucci贸n del job Slurm, polling de estado, recuperaci贸n de ficheros y parseo de resultados鈥?ocurre de forma transparente en segundo plano.
 
 ---
+---
 
-## 2. Inicio rápido
+## 2. Propuesta de Valor
+
+| Problema actual | Solución BioHack |
+|---|---|
+| Terminal Linux obligatoria | Interfaz web, cero comandos |
+| Estados Slurm crípticos (`PD`, `R`, `CG`) | Monitor visual en tiempo real: `PENDIENTE → EJECUTANDO → COMPLETADO` |
+| Ficheros PDB ilegibles sin formación | Visor 3D interactivo con coloreado pLDDT automático |
+| Resultados sin interpretación | Traductor IA (LLM) que explica métricas en lenguaje natural |
+| Solo proteínas precomputadas (AlphaFold DB) | Envío de secuencias propias al clúster real |
+
+> **PROPUESTA ÚNICA:** El único portal que lleva a un biólogo de secuencia a *insight* en minutos, sin abrir una terminal.
+
+---
+
+## 3. Inicio rápido
 
 ### Requisitos previos
 
@@ -55,48 +70,51 @@ La aplicación estará disponible en `http://localhost:5173`.
 
 ---
 
-## 3. Arquitectura
+## 4. Estructura del proyecto
 
 ```
 .
-鈹溾攢鈹€ index.html                        鈥?Punto de entrada HTML
-鈹溾攢鈹€ package.json                      鈥?Dependencias y scripts npm
-鈹溾攢鈹€ vite.config.js                    鈥?Configuraci贸n del bundler Vite
-鈹溾攢鈹€ .env.example                      鈥?Plantilla de variables de entorno
-鈹斺攢鈹€ src/
-    鈹溾攢鈹€ main.jsx                      鈥?Bootstrap de React (ReactDOM.render)
-    鈹溾攢鈹€ App.jsx                       鈥?Componente ra铆z y enrutado de vistas
-    鈹溾攢鈹€ App.css                       鈥?Estilos globales de la aplicaci贸n
-    鈹溾攢鈹€ index.css                     鈥?Reset CSS base
-    鈹?    鈹溾攢鈹€ components/
-    鈹?  鈹溾攢鈹€ Sidebar.jsx               鈥?Navegaci贸n lateral principal
-    鈹?  鈹溾攢鈹€ Dashboard.jsx             鈥?Vista de inicio con resumen general
-    鈹?  鈹溾攢鈹€ NewPredictionView.jsx     鈥?Formulario de nueva predicci贸n (FASTA)
-    鈹?  鈹溾攢鈹€ SubmissionForm.jsx        鈥?L贸gica del formulario con validaci贸n Zod
-    鈹?  鈹溾攢鈹€ JobStatusPanel.jsx        鈥?Panel de estado del job Slurm en tiempo real
-    鈹?  鈹溾攢鈹€ JobStatusLoader.jsx       鈥?Componente de carga/polling del job
-    鈹?  鈹溾攢鈹€ MolecularViewer.jsx       鈥?Visor 3D interactivo de la prote铆na
-    鈹?  鈹溾攢鈹€ ProteinStatsCard.jsx      鈥?Estad铆sticas b谩sicas de la secuencia
-    鈹?  鈹溾攢鈹€ DrugScoreCard.jsx         鈥?Bio-Score Card: solubilidad, toxicidad, estabilidad
-    鈹?  鈹溾攢鈹€ AIReport.jsx              鈥?Informe generado por IA (Claude) sobre resultados
-    鈹?  鈹溾攢鈹€ DownloadPanel.jsx         鈥?Exportaci贸n de resultados (PDB, JSON, PDF)
-    鈹?  鈹溾攢鈹€ HistorialView.jsx         鈥?Historial de predicciones anteriores
-    鈹?  鈹溾攢鈹€ EjecucionesView.jsx       鈥?Monitor de jobs activos en el cl煤ster
-    鈹?  鈹溾攢鈹€ InfoPublicaView.jsx       鈥?Biblioteca de prote铆nas precargadas (modo Academy)
-    鈹?  鈹溾攢鈹€ InstruccionesView.jsx     鈥?Gu铆a de uso para el investigador
-    鈹?  鈹斺攢鈹€ Toast.jsx                 鈥?Notificaciones emergentes de estado
-    鈹?    鈹溾攢鈹€ hooks/
-    鈹?  鈹斺攢鈹€ useJobStatus.js           鈥?Hook de polling as铆ncrono al estado Slurm
-    鈹?    鈹溾攢鈹€ services/
-    鈹?  鈹溾攢鈹€ api.js                    鈥?Cliente HTTP hacia la API bridge del CESGA
-    鈹?  鈹溾攢鈹€ aiService.js              鈥?Integraci贸n con Claude API (Anthropic)
-    鈹?  鈹溾攢鈹€ browserNotifications.js   鈥?Notificaciones del navegador al completar job
-    鈹?  鈹斺攢鈹€ syntheticStructure.js     鈥?Parseo y generaci贸n de estructuras PDB
-    鈹?    鈹斺攢鈹€ styles/
-        鈹溾攢鈹€ main.css                  鈥?Estilos principales por componente
-        鈹斺攢鈹€ variables.css             鈥?Tokens de dise帽o (colores, tipograf铆a, espaciado)
+|-- index.html                      # Punto de entrada HTML
+|-- package.json                    # Dependencias y scripts npm
+|-- vite.config.js                  # Configuracion del bundler Vite
+|-- .env.example                    # Plantilla de variables de entorno
+|-- src/
+    |-- main.jsx                    # Bootstrap de React (ReactDOM.render)
+    |-- App.jsx                     # Componente raiz y enrutado de vistas
+    |-- App.css                     # Estilos globales de la aplicacion
+    |-- index.css                   # Reset CSS base
+    |
+    |-- components/
+    |   |-- Sidebar.jsx             # Navegacion lateral principal
+    |   |-- Dashboard.jsx           # Vista de inicio con resumen general
+    |   |-- NewPredictionView.jsx   # Formulario de nueva prediccion (FASTA)
+    |   |-- SubmissionForm.jsx      # Logica del formulario con validacion Zod
+    |   |-- JobStatusPanel.jsx      # Panel de estado del job Slurm en tiempo real
+    |   |-- JobStatusLoader.jsx     # Componente de carga/polling del job
+    |   |-- MolecularViewer.jsx     # Visor 3D interactivo de la proteina
+    |   |-- ProteinStatsCard.jsx    # Estadisticas basicas de la secuencia
+    |   |-- DrugScoreCard.jsx       # Bio-Score Card: solubilidad, toxicidad, estabilidad
+    |   |-- AIReport.jsx            # Informe generado por IA (Claude) sobre resultados
+    |   |-- DownloadPanel.jsx       # Exportacion de resultados (PDB, JSON, PDF)
+    |   |-- HistorialView.jsx       # Historial de predicciones anteriores
+    |   |-- EjecucionesView.jsx     # Monitor de jobs activos en el cluster
+    |   |-- InfoPublicaView.jsx     # Biblioteca de proteinas precargadas (modo Academy)
+    |   |-- InstruccionesView.jsx   # Guia de uso para el investigador
+    |   |-- Toast.jsx               # Notificaciones emergentes de estado
+    |
+    |-- hooks/
+    |   |-- useJobStatus.js         # Hook de polling asincrono al estado Slurm
+    |
+    |-- services/
+    |   |-- api.js                  # Cliente HTTP hacia la API bridge del CESGA
+    |   |-- aiService.js            # Integracion con Claude API (Anthropic)
+    |   |-- browserNotifications.js # Notificaciones del navegador al completar job
+    |   |-- syntheticStructure.js   # Parseo y generacion de estructuras PDB
+    |
+    |-- styles/
+        |-- main.css                # Estilos principales por componente
+        |-- variables.css           # Tokens de diseno (colores, tipografia, espaciado)
 ```
-
 ---
 
 ## 5. Descripci贸n t茅cnica de los ficheros clave
@@ -153,7 +171,22 @@ Define todos los tokens de dise帽o del sistema: paleta de colores, escala tipog
 
 ---
 
-## 7. Equipo
+---
+
+## 7. Métricas Clave
+
+| Métrica | Descripción |
+|---|---|
+| Jobs/día | Secuencias enviadas al clúster |
+| Tiempo al 3D | Desde pegado del FASTA hasta visor interactivo |
+| Tasa de retención | Biólogos que repiten uso |
+| % autonomía | Usuarios que completan el flujo sin asistencia |
+| GPU-hours ahorradas | Hits en caché Academy vs jobs reales lanzados |
+
+---
+
+
+## 8. Equipo
 
 Desarrollado en el contexto del **Impacthon 2026** organizado por la **C谩tedra CAMELIA / CiTIUS (Universidade de Santiago de Compostela)**.
 Infraestructura HPC: **CESGA FinisTerrae III**.
