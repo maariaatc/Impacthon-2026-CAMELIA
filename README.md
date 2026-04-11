@@ -4,11 +4,11 @@
 
 ## 1. Introducción
 
-El conocimiento de la estructura tridimensional de una prote铆na es esencial en biolog铆a moderna: determina su funci贸n e impulsa el dise帽o de f谩rmacos. AlphaFold2 revolucion贸 este campo prediciendo estructuras con precisi贸n at贸mica en minutos; el supercomputador **CESGA FinisTerrae III** (GPUs A100, 80 GB VRAM) ofrece la infraestructura para ejecutarlo a escala.
+El conocimiento de la estructura tridimensional de una proteína es esencial en biología moderna: determina su función e impulsa el diseño de fármacos. AlphaFold2 revolucionó este campo prediciendo estructuras con precisión atómica en minutos; el supercomputador **CESGA FinisTerrae III** (GPUs A100, 80 GB VRAM) ofrece la infraestructura para ejecutarlo a escala.
 
-El problema es el acceso. Utilizarlo exige dominar Linux, el gestor de colas **Slurm** (`sbatch`, `squeue`) e interpretar ficheros PDB y logs de error a mano, una barrera t茅cnica que excluye a la mayor铆a de investigadores biol贸gicos. La potencia de c谩lculo existe, pero falta el puente que la conecte con el usuario final.
+El problema es el acceso. Utilizarlo exige dominar Linux, el gestor de colas **Slurm** (`sbatch`, `squeue`) e interpretar ficheros PDB y logs de error a mano, una barrera técnica que excluye a la mayoría de investigadores biológicos. La potencia de cálculo existe, pero falta el puente que la conecte con el usuario final.
 
-**Antigravity** construye ese puente. Es una Single Page Application (SPA) desarrollada en **React + Vite** que act煤a como capa de abstracci贸n sobre el cl煤ster HPC: el investigador pega una secuencia FASTA y recibe en su navegador la estructura proteica en 3D, m茅tricas de confianza interpretadas y un an谩lisis asistido por IA. Toda la comunicaci贸n con el supercomputador 鈥攃onstrucci贸n del job Slurm, polling de estado, recuperaci贸n de ficheros y parseo de resultados鈥?ocurre de forma transparente en segundo plano.
+**Antigravity** construye ese puente. Es una Single Page Application (SPA) desarrollada en **React + Vite** que actúa como capa de abstracción sobre el clúster HPC: el investigador pega una secuencia FASTA y recibe en su navegador la estructura proteica en 3D, métricas de confianza interpretadas y un análisis asistido por IA. Toda la comunicación con el supercomputador - construcción del job Slurm, polling de estado, recuperación de ficheros y parseo de resultados - ocurre de forma transparente en segundo plano.
 
 ---
 ---
@@ -64,9 +64,9 @@ La aplicación estará disponible en `http://localhost:5173`.
 | `npm run dev` | Servidor de desarrollo con HMR (Vite) |
 | `npm run build` | Compilación optimizada para producción |
 | `npm run preview` | Previsualización del build de producción |
-| `npm run lint` | An谩isis est谩tico con ESLint |
+| `npm run lint` | Anáisis estático con ESLint |
 
-> **Modo Academy:** funciona sin credenciales HPC, sirviendo resultados en cach茅 para las prote铆nas precargadas. Ideal para demos y entornos docentes.
+> **Modo Academy:** funciona sin credenciales HPC, sirviendo resultados en caché para las proteínas precargadas. Ideal para demos y entornos docentes.
 
 ---
 
@@ -117,57 +117,57 @@ La aplicación estará disponible en `http://localhost:5173`.
 ```
 ---
 
-## 5. Descripci贸n t茅cnica de los ficheros clave
+## 5. Descripción técnica de los ficheros clave
 
 ### `src/App.jsx`
-Componente ra铆z de la aplicaci贸n. Gestiona el estado global de navegaci贸n y renderiza condicionalmente las vistas seg煤n la secci贸n activa seleccionada en el `Sidebar`. Act煤a como enrutador ligero sin dependencia de React Router.
+Componente raíz de la aplicación. Gestiona el estado global de navegación y renderiza condicionalmente las vistas según la sección activa seleccionada en el `Sidebar`. Actúa como enrutador ligero sin dependencia de React Router.
 
 ### `src/components/NewPredictionView.jsx` + `SubmissionForm.jsx`
-Flujo completo de env铆o de una nueva predicci贸n. `SubmissionForm` usa **react-hook-form** con esquema de validaci贸n **Zod** para verificar el formato FASTA (cabecera, caracteres IUPAC, longitud) antes de llamar a la API. Si la validaci贸n pasa, construye el payload y lo env铆a al bridge del CESGA.
+Flujo completo de envío de una nueva predicción. `SubmissionForm` usa **react-hook-form** con esquema de validación **Zod** para verificar el formato FASTA (cabecera, caracteres IUPAC, longitud) antes de llamar a la API. Si la validación pasa, construye el payload y lo envía al bridge del CESGA.
 
 ### `src/hooks/useJobStatus.js`
-Custom hook que implementa el polling as铆ncrono al endpoint de estado del job. Consulta el estado cada N segundos, parsea la respuesta de Slurm (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`) y actualiza el estado local de React. Cuando el job termina, dispara la notificaci贸n del navegador v铆a `browserNotifications.js`.
+Custom hook que implementa el polling asíncrono al endpoint de estado del job. Consulta el estado cada N segundos, parsea la respuesta de Slurm (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`) y actualiza el estado local de React. Cuando el job termina, dispara la notificación del navegador vía `browserNotifications.js`.
 
 ### `src/components/JobStatusPanel.jsx` + `JobStatusLoader.jsx`
-Interfaz visual del monitor de jobs. Transforma los estados cr铆pticos de Slurm en indicadores visuales claros con animaciones de progreso. `JobStatusLoader` maneja los estados de carga intermedios mientras el hook realiza el polling.
+Interfaz visual del monitor de jobs. Transforma los estados crípticos de Slurm en indicadores visuales claros con animaciones de progreso. `JobStatusLoader` maneja los estados de carga intermedios mientras el hook realiza el polling.
 
 ### `src/components/MolecularViewer.jsx`
-Visor 3D interactivo de la estructura proteica. Consume el fichero PDB generado por AlphaFold2 y lo renderiza con soporte para rotaci贸n, zoom y selecci贸n de residuos. Aplica el coloreado est谩ndar por m茅trica **pLDDT** para identificar visualmente las regiones de alta y baja confianza:
+Visor 3D interactivo de la estructura proteica. Consume el fichero PDB generado por AlphaFold2 y lo renderiza con soporte para rotación, zoom y selección de residuos. Aplica el coloreado estándar por métrica **pLDDT** para identificar visualmente las regiones de alta y baja confianza:
 
-| Color | pLDDT | Interpretaci贸n |
+| Color | pLDDT | Interpretación |
 |---|---|---|
-| 馃數 Azul oscuro | > 90 | Regi贸n muy fiable |
-| 馃數 Azul claro | 70 鈥?90 | Fiable |
-| 馃煛 Amarillo | 50 鈥?70 | Baja confianza |
-| 馃煚 Naranja | < 50 | Regi贸n probablemente desordenada |
+| -> Azul oscuro | > 90 | Región muy fiable |
+| -> Azul claro | 70 - 90 | Fiable |
+| -> Amarillo | 50 - 70 | Baja confianza |
+| -> Naranja | < 50 | Región probablemente desordenada |
 
 ### `src/components/DrugScoreCard.jsx`
-Analiza los datos de salida de AlphaFold2 y calcula m茅tricas de viabilidad farmacol贸gica: solubilidad estimada, estabilidad t茅rmica y toxicidad potencial, presentadas en formato sem谩foro visual. Permite evaluar de un vistazo si la prote铆na es candidata a estudios de *drug discovery*.
+Analiza los datos de salida de AlphaFold2 y calcula métricas de viabilidad farmacológica: solubilidad estimada, estabilidad térmica y toxicidad potencial, presentadas en formato semáforo visual. Permite evaluar de un vistazo si la proteína es candidata a estudios de *drug discovery*.
 
 ### `src/components/AIReport.jsx`
-Genera un informe interpretado en lenguaje natural llamando a `aiService.js`. Env铆a las m茅tricas pLDDT, PAE y Bio-Score a la **Claude API**, que devuelve una explicaci贸n contextualizada de los resultados y sugerencias de validaci贸n experimental.
+Genera un informe interpretado en lenguaje natural llamando a `aiService.js`. Envía las métricas pLDDT, PAE y Bio-Score a la **Claude API**, que devuelve una explicación contextualizada de los resultados y sugerencias de validación experimental.
 
 ### `src/services/api.js`
-Cliente HTTP centralizado que abstrae todas las llamadas al backend bridge del CESGA. Gestiona autenticaci贸n, construcci贸n de endpoints, manejo de errores y reintentos. Es el 煤nico punto de contacto entre el frontend y la infraestructura HPC.
+Cliente HTTP centralizado que abstrae todas las llamadas al backend bridge del CESGA. Gestiona autenticación, construcción de endpoints, manejo de errores y reintentos. Es el único punto de contacto entre el frontend y la infraestructura HPC.
 
 ### `src/services/syntheticStructure.js`
-M贸dulo de parseo y generaci贸n de estructuras moleculares. Transforma los ficheros PDB devueltos por el cl煤ster en el formato que consume `MolecularViewer`. En modo Academy, genera estructuras en cach茅 para las prote铆nas precargadas sin necesidad de lanzar un job real.
+Módulo de parseo y generación de estructuras moleculares. Transforma los ficheros PDB devueltos por el clúster en el formato que consume `MolecularViewer`. En modo Academy, genera estructuras en caché para las proteínas precargadas sin necesidad de lanzar un job real.
 
 ### `src/styles/variables.css`
-Define todos los tokens de dise帽o del sistema: paleta de colores, escala tipogr谩fica, espaciado y breakpoints. Centraliza la identidad visual de la aplicaci贸n.
+Define todos los tokens de diseño del sistema: paleta de colores, escala tipográfica, espaciado y breakpoints. Centraliza la identidad visual de la aplicación.
 
 ---
 
 ## 6. Dependencias principales
 
-| Paquete | Versi贸n | Uso |
+| Paquete | Versión | Uso |
 |---|---|---|
 | `react` + `react-dom` | 18.3 | Framework de UI |
 | `vite` | 5.4 | Bundler y servidor de desarrollo |
-| `react-hook-form` | 7.72 | Gesti贸n de formularios con validaci贸n |
-| `zod` | 4.3 | Esquemas de validaci贸n de datos (FASTA) |
-| `jspdf` + `jspdf-autotable` | 4.2 / 5.0 | Generaci贸n de informes PDF exportables |
-| `lucide-react` | 1.8 | Iconograf铆a SVG del sistema de dise帽o |
+| `react-hook-form` | 7.72 | Gestión de formularios con validación |
+| `zod` | 4.3 | Esquemas de validación de datos (FASTA) |
+| `jspdf` + `jspdf-autotable` | 4.2 / 5.0 | Generación de informes PDF exportables |
+| `lucide-react` | 1.8 | Iconografía SVG del sistema de diseño |
 
 ---
 
@@ -188,8 +188,8 @@ Define todos los tokens de dise帽o del sistema: paleta de colores, escala tipog
 
 ## 8. Equipo
 
-Desarrollado en el contexto del **Impacthon 2026** organizado por la **C谩tedra CAMELIA / CiTIUS (Universidade de Santiago de Compostela)**.
+Desarrollado en el contexto del **Impacthon 2026** organizado por la **Cátedra CAMELIA / CiTIUS (Universidade de Santiago de Compostela)**.
 Infraestructura HPC: **CESGA FinisTerrae III**.
 
-> *"Tu c贸digo hoy. La herramienta de la ciencia ma帽ana."*
-> 鈥?C谩tedra CAMELIA / USC
+> *"Tu código hoy. La herramienta de la ciencia mañana."*
+> - Cátedra CAMELIA / USC
